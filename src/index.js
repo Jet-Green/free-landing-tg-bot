@@ -78,7 +78,7 @@ async function SetProjectSettings(projectId, settings) {
 }
 // Запуск
 async function main() {
-  const vercelToken = process.env.VERCEL_TOKEN2;
+  const vercelToken = config.vercelToken;
 
   if (!vercelToken) {
     console.error("❌ Установите VERCEL_TOKEN");
