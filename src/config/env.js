@@ -1,9 +1,9 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 
 if (!globalThis.config) {
   dotenv.config();
 
-  const required = ['LOVABLE_API_KEY', 'LOVABLE_API_URL'];
+  const required = ["VERCEL_TOKEN"];
 
   for (const key of required) {
     if (!process.env[key]) {
@@ -13,8 +13,7 @@ if (!globalThis.config) {
   }
 
   globalThis.config = {
-    lovableApiKey: process.env.LOVABLE_API_KEY,
-    lovableApiUrl: process.env.LOVABLE_API_URL,
+    vercelApiToken: process.env.VERCEL_TOKEN,
   };
 }
 
