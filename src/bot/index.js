@@ -17,10 +17,11 @@ export const Bot = {
     const commandSiteCreate = "Создать ещё один сайт";
     const reply_markup = {
       keyboard: [[commandSiteCreate]],
-      resize_keyboard: true, // Подгонять под размер экрана
-      one_time_keyboard: false, // Не скрывать после нажатия
-      selective: false, // Показывать всем в чате
+      resize_keyboard: true,
+      one_time_keyboard: false,
+      selective: false,
     };
+
     bot.on("message", async (msg) => {
       const chatId = msg.chat.id;
       const userId = msg.from.id;
@@ -61,21 +62,18 @@ export const Bot = {
       if (state) {
         const link = Lovable.getLink(text || "Create a landing page", images);
         session.images = [];
-        let sentMsg = await bot.sendMessage(
-          chatId,
-          `[ваш сайт почти готов](${link})`,
-          {
-            parse_mode: "MarkdownV2",
-          }
-        );
+        const inline_keyboard = [
+          [
+            {
+              text: "Кнопка",
+              url: link,
+            },
+          ],
+        ];
+        let sentMsg = await bot.sendMessage(chatId, `ваш сайт почти готов`, {
+          reply_markup: { inline_keyboard },
+        });
         session.state = false;
-        // await bot.sendMessage(
-        //   chatId,
-        //   "Можете также создать дополнительный сайт",
-        //   {
-        //     reply_markup: reply_markup,
-        //   }
-        // );
       }
     });
 
