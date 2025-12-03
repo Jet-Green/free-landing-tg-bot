@@ -11,6 +11,16 @@ export const Bot = {
   runBot: function () {
     const userSessions = new Map();
 
+    const getPrompt =
+      "Введите какой вам нужен сайт, распишите основные разделы, можете добавить референсные картинки";
+    const hiMessage = "Hi";
+    const commandSiteCreate = "Создать ещё один сайт";
+    const reply_markup = {
+      keyboard: [[commandSiteCreate]],
+      resize_keyboard: true, // Подгонять под размер экрана
+      one_time_keyboard: false, // Не скрывать после нажатия
+      selective: false, // Показывать всем в чате
+    };
     bot.on("message", async (msg) => {
       const chatId = msg.chat.id;
       const userId = msg.from.id;
@@ -18,10 +28,23 @@ export const Bot = {
       const photoArray = msg.photo;
 
       if (!userSessions.has(userId)) {
-        userSessions.set(userId, { prompt: "", images: [] });
+        userSessions.set(userId, { prompt: "", images: [], state: true });
       }
       const session = userSessions.get(userId);
 
+      if (text === "/start") {
+        let sentMsg = await bot.sendMessage(chatId, hiMessage, {
+          reply_markup: reply_markup,
+        });
+        await bot.sendMessage(chatId, getPrompt);
+        session.state = true;
+        return;
+      }
+      if (text === commandSiteCreate) {
+        session.state = true;
+        await bot.sendMessage(chatId, getPrompt);
+        return;
+      }
       if (photoArray && photoArray.length > 0) {
         const fileId = photoArray[photoArray.length - 1].file_id;
         try {
@@ -29,46 +52,30 @@ export const Bot = {
           if (!session.images.includes(fileLink)) {
             session.images.push(fileLink);
           }
-          await bot.sendMessage(chatId, "✅ Картинка добавлена!");
+          await bot.sendMessage(chatId, "");
         } catch (err) {
-          console.error("Не удалось получить ссылку на фото:", err.message);
+          //console.error("Не удалось получить ссылку на фото:", err.message);
         }
-        return;
       }
-
-      if (text === "/start") {
-        await bot.sendMessage(
+      const { images, state } = session;
+      if (state) {
+        const link = Lovable.getLink(text || "Create a landing page", images);
+        session.images = [];
+        let sentMsg = await bot.sendMessage(
           chatId,
-          "Отправьте описание лендинга и изображения, затем вызовите /build для создания сайта \n или /clear для очистки"
+          `[ваш сайт почти готов](${link})`,
+          {
+            parse_mode: "MarkdownV2",
+          }
         );
-        return;
-      }
-      if (text === "/clear") {
-        await bot.sendMessage(chatId, "Промпт очищен!");
-        return;
-      }
-      if (text === "/build") {
-        const { prompt, images } = session;
-        if (!prompt && images.length === 0) {
-          await bot.sendMessage(
-            chatId,
-            "Сначала отправьте описание и/или изображения."
-          );
-          return;
-        }
-        const link = Lovable.getLink(prompt || "Create a landing page", images);
-        await bot.sendMessage(chatId, "Вот ваша ссылка на сайт -- " + link);
-        return;
-      }
-
-      if (!text.startsWith("/")) {
-        if (session.prompt != "") {
-          session.prompt = text;
-          await bot.sendMessage(chatId, "✅ Описание сохранено!");
-        } else {
-          session.prompt = text;
-          await bot.sendMessage(chatId, "✅ Описание перезаписано!");
-        }
+        session.state = false;
+        // await bot.sendMessage(
+        //   chatId,
+        //   "Можете также создать дополнительный сайт",
+        //   {
+        //     reply_markup: reply_markup,
+        //   }
+        // );
       }
     });
 
